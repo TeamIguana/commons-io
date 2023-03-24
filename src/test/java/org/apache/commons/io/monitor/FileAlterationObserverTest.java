@@ -369,6 +369,32 @@ public class FileAlterationObserverTest extends AbstractMonitorTest {
         assertFalse(listener.getDeletedFiles().contains(testDirAFile3), "E deleted");
     }
 
+     /**
+     * Test checkAndNotify() creating using default comparator
+     * @throws IOException if an I/O error occurs.
+     */
+    @Test
+    public void testFileCreateUsingDefaultComparator() throws IOException {
+        checkAndNotify();
+        checkCollectionsEmpty("A");
+        File testDirA = new File(testDir, "test-dir-A");
+        testDirA.mkdir();
+        testDir  = touch(testDir);
+        testDirA = touch(testDirA);
+        final File testDirAFile2 = touch(new File(testDirA, "A-file2.java"));
+        final File testDirAFile1 = touch(new File(testDirA, "A-file1.java"));
+        final File testDirAFile3 = touch(new File(testDirA, "A-file3.java"));
+
+        checkAndNotify();
+
+        final Collection<File> expectedSortedFiles = new ArrayList<>();
+        expectedSortedFiles.add(testDirAFile1);
+        expectedSortedFiles.add(testDirAFile2);
+        expectedSortedFiles.add(testDirAFile3);
+
+        assertEquals(expectedSortedFiles, listener.getCreatedFiles(), "sorted files by NameFileComparator");
+    }
+
     /**
      * Test checkAndNotify() creating specifying a comparator
      * @throws IOException if an I/O error occurs.
