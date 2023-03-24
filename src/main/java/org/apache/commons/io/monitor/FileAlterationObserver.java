@@ -145,12 +145,12 @@ public class FileAlterationObserver implements Serializable {
      * @param fileFilter The file filter or null if none
      */
     public FileAlterationObserver(final File directory, final FileFilter fileFilter) {
-        this(directory, fileFilter, null);
+        this(directory, fileFilter, (IOCase) null);
     }
 
     /**
      * Constructs an observer for the specified directory, file filter and
-     * file comparator.
+     * name file comparator.
      *
      * @param directory the directory to observe
      * @param fileFilter The file filter or null if none
@@ -161,7 +161,7 @@ public class FileAlterationObserver implements Serializable {
     }
 
     /**
-     * Constructs an observer for the specified directory, file filter and file comparator.
+     * Constructs an observer for the specified directory, file filter and name file comparator.
      *
      * @param rootEntry the root directory to observe
      * @param fileFilter The file filter or null if none
@@ -182,6 +182,34 @@ public class FileAlterationObserver implements Serializable {
         default:
             this.comparator = NameFileComparator.NAME_COMPARATOR;
         }
+    }
+
+    /**
+     * Constructs an observer for the specified directory, file filter and
+     * file comparator.
+     *
+     * @param directory the directory to observe
+     * @param fileFilter The file filter or null if none
+     * @param fileComparator the comparator used to get files order, null means alphabetical order
+     */
+    public FileAlterationObserver(final File directory, final FileFilter fileFilter, final Comparator<File> fileComparator) {
+        this(new FileEntry(directory), fileFilter, fileComparator);
+    }
+
+    /**
+     * Constructs an observer for the specified directory, file filter and file comparator.
+     *
+     * @param rootEntry the root directory to observe
+     * @param fileFilter The file filter or null if none
+     * @param fileComparator the comparator used to get files order
+     */
+    protected FileAlterationObserver(final FileEntry rootEntry, final FileFilter fileFilter, final Comparator<File> fileComparator) {
+        Objects.requireNonNull(rootEntry, "rootEntry");
+        Objects.requireNonNull(rootEntry.getFile(), "rootEntry.getFile()");
+        Objects.requireNonNull(fileComparator, "fileComparator");
+        this.rootEntry = rootEntry;
+        this.fileFilter = fileFilter;
+        this.comparator = fileComparator;
     }
 
     /**

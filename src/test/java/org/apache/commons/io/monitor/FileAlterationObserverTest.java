@@ -19,13 +19,18 @@ package org.apache.commons.io.monitor;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.File;
 import java.io.FileFilter;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Comparator;
 import java.util.Iterator;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.comparator.LastModifiedFileComparator;
 import org.apache.commons.io.filefilter.CanReadFileFilter;
 import org.apache.commons.io.filefilter.FileFilterUtils;
 import org.junit.jupiter.api.Test;
@@ -365,6 +370,31 @@ public class FileAlterationObserverTest extends AbstractMonitorTest {
     }
 
     /**
+     * Test checkAndNotify() creating specifying a comparator
+     * @throws IOException if an I/O error occurs.
+     */
+    @Test
+    public void testFileCreateSpecifyingComparator() throws IOException {
+        createObserver(LastModifiedFileComparator.LASTMODIFIED_COMPARATOR);
+
+        checkAndNotify();
+        checkCollectionsEmpty("A");
+        File testDirA = new File(testDir, "test-dir-A");
+        testDirA.mkdir();
+        testDir  = touch(testDir);
+        testDirA = touch(testDirA);
+        final File testDirAFileOldest = touch(new File(testDirA, "A-fileOldest.java"));
+        final File testDirAFileNewest = touch(new File(testDirA, "A-fileNewest.java"));
+
+        checkAndNotify();
+        final Collection<File> expectedSortedFiles = new ArrayList<>();
+        expectedSortedFiles.add(testDirAFileOldest);
+        expectedSortedFiles.add(testDirAFileNewest);
+
+        assertEquals(expectedSortedFiles, listener.getCreatedFiles(), "sorted files by lastModifiedComparator");
+    }
+
+    /**
      * Test toString().
      */
     @Test
@@ -381,4 +411,15 @@ public class FileAlterationObserverTest extends AbstractMonitorTest {
 
         assertEquals(file, observer.getDirectory());
   }
+
+    private void createObserver(Comparator<File> fileComparator) {
+        observer = new FileAlterationObserver(testDir, filter, fileComparator);
+        observer.addListener(listener);
+        observer.addListener(new FileAlterationListenerAdaptor());
+        try {
+            observer.initialize();
+        } catch (final Exception e) {
+            fail("Observer init() threw " + e);
+        }
+    }
 }

@@ -47,6 +47,8 @@ public abstract class AbstractMonitorTest {
     @TempDir
     protected File testDir;
 
+    protected IOFileFilter filter;
+
     /** Time in milliseconds to pause in tests */
     protected final long pauseTime = 100L;
 
@@ -118,7 +120,7 @@ public abstract class AbstractMonitorTest {
         final IOFileFilter visible = HiddenFileFilter.VISIBLE;
         final IOFileFilter dirFilter = FileFilterUtils.and(directories, visible);
 
-        final IOFileFilter filter = FileFilterUtils.or(dirFilter, fileFilter);
+        filter = FileFilterUtils.or(dirFilter, fileFilter);
 
         createObserver(testDir, filter);
     }
